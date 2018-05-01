@@ -18,34 +18,33 @@ use Readonly;
 
 ## Cults
 
-Readonly our @cults => qw(FIRE WATER EARTH AIR);
+Readonly our @cults => qw( TERRAFORMING NAVIGATION ARTIFICIAL_INTELLIGENCE GAIA_PROJECT ECONOMY SCIENCE );
 
 ## Buildings
 
 Readonly our %building_strength => (
-    D => 1,
-    TP => 2,
-    TE => 2,
-    SH => 3,
-    SA => 3,
+    M => 1,
+    TS => 2,
+    RL => 2,
+    PI => 3,
+    AC => 3,
 );
 
 Readonly our %building_aliases => (
-    DWELLING => 'D',
-    'TRADING POST' => 'TP',
-    TEMPLE => 'TE',
-    STRONGHOLD => 'SH',
-    SANCTUARY => 'SA',
+    MINE => 'M',
+    'TRADING STATION' => 'TP',
+    'RESEARCH LAB' => 'TE',
+    'PLANETARY INSTITUTE' => 'SH',
+    Academy => 'SA',
 );
 
 ## Resources
 
 Readonly our %resource_aliases => (
-    PRIEST => 'P',
-    PRIESTS => 'P',
+    Knowledge => 'K',
+    'POWER TOKEN' => 'PT',
     POWER => 'PW',
-    WORKER => 'W',
-    WORKERS => 'W',
+    Ore => 'O',
     COIN => 'C',
     COINS => 'C',
 );
