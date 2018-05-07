@@ -1,6 +1,6 @@
 package Game::Constants;
 
-use Exporter::Easy (EXPORT => [ '@cults',
+use Exporter::Easy (EXPORT => [ '@research_areas',
                                 '%actions',
                                 '%building_aliases',
                                 '%building_strength',
@@ -18,7 +18,7 @@ use Readonly;
 
 ## Cults
 
-Readonly our @cults => qw( TERRAFORMING NAVIGATION ARTIFICIAL_INTELLIGENCE GAIA_PROJECT ECONOMY SCIENCE );
+Readonly our @research_areas => qw( TERRAFORMING NAVIGATION ARTIFICIAL_INTELLIGENCE GAIA_PROJECT ECONOMY SCIENCE );
 
 ## Buildings
 
@@ -63,7 +63,8 @@ Readonly our %actions => (
     ACTP6 => { cost => { PW => 5 }, gain => { TERRAFORM => 2 },
               subaction => { terraform => 2, 'build' => 1} },
 	ACTP7 => { cost => { PW => 7 }, gain => { K => 3 } },
-	ACTQ1 => { cost => { Q => 2 }, gain => { SCORE_PLANET_TYPES => 1 } },
+	
+	ACTQ1 => { cost => { Q => 2 }, gain => { VP => 3, VP => { PLANET_TYPES => [ map { $_  * 1 } 0..9 ] } },
 	ACTQ2 => { cost => { Q => 3 }, gain => { SCORE_FED => 1 } },
 	ACTQ3 => { cost => { Q => 4 }, gain => { TECH => 1 } },
     ACTA => { cost => {}, gain => { MOVE_PI => 1 } },
@@ -71,13 +72,18 @@ Readonly our %actions => (
               subaction => { 'space_station' => 1 } },
     ACTF => { cost => { }, gain => { DOWNGRADE_TS => 1, NEED_RL => 1 },
               subaction => { 'upgrade' => 1 } },
-    ACTB => { cost => {}, gain => { FREE_RESEARCH => 1, MIN_RESEARCH => 1 },
+    ACTBe => { cost => {}, gain => { FREE_RESEARCH => 1, MIN_RESEARCH => 1 },
               subaction => { 'upgrade' => 1 }},
+	ACTBa => { cost => {}, gain => { C => 4 } }
+	ACTQ => { cost => {}, gain => { Q => 1 } }
     BON4 => { cost => {}, gain => { TERRAFORM => 1 },
               subaction => { terraform => 1, 'build' => 1 } },
     BON5 => { cost => {}, gain => { RANGE => 3 },
               subaction => { 'build' => 1 } },
-    FAV6 => { cost => {}, gain => { PW => 4 } },
+    TECH6 => { cost => {}, gain => { PW => 4 } },
+    TECH22 => { cost => {}, gain => { O => 3 } },
+    TECH23 => { cost => {}, gain => { K => 3 } },
+    TECH24 => { cost => {}, gain => { Q => 1, C => 5 } },
 );
        
 sub init_tiles {
@@ -88,8 +94,7 @@ sub init_tiles {
         if ($tile_name =~ /^SCORE/) {
             my $currency = (keys %{$tile->{income}})[0];
             $tile->{income_display} =
-                sprintf("%d %s -> %d %s", $tile->{req}, $tile->{cult},
-                        $tile->{income}{$currency}, $currency);
+                sprintf("%d %s -> %d %s", $tile->{req}, $tile->{income}{$currency}, $currency);
         }
         if (exists $actions{$tile_name}) {
             $tile->{action} = $actions{$tile_name};
@@ -112,92 +117,76 @@ Readonly our %tiles => init_tiles (
     BON8 => { income => { O => 1 },
               pass_vp => { TS => [ map { $_ * 2 } 0..4 ] } },
     BON9 => { income => { PW => 4 },
-              pass_vp => { SA => [0, 4], SH => [0, 4] } },
+              pass_vp => { SA => [0, 4, 8], SH => [0, 4] } },
     BON10 => { income => { C => 4 },
                pass_vp => { GAIA => [ map { $_ } 0..19 ] },
-               option => 'gaia-bonus' },
 
-    FAV1 => { gain => { FIRE => 3 }, income => {}, count => 1 },
-    FAV2 => { gain => { WATER => 3 }, income => {}, count => 1 },
-    FAV3 => { gain => { EARTH => 3 }, income => {}, count => 1 },
-    FAV4 => { gain => { AIR => 3 }, income => {}, count => 1 },
+    TECH1 => { gain => { VP => 7 }, income => {}, type => 'standard'},
+    TECH2 => { gain => { O => 1, Q => 1 }, income => {}, type => 'standard'},
+    TECH3 => { gain => { K => { PLANET_TYPES => [ map { $_  * 1 } 0..9 ] } }, income => {}, type => 'standard' },
+    TECH4 => { gain => { PI_AC_SIZE => 1 }, income => {}, type => 'standard'},
+    TECH5 => { income => {}, vp => { GAIA => 3 }, type => 'standard' },
+    TECH6 => { income => {}, type => 'standard' },
+    TECH7 => { income => { W => 1, PW => 1}, type => 'standard' },
+    TECH8 => { income => { C => 4}, type => 'standard' },
+    TECH9 => { income => { C => 1, K => 1 }, type => 'standard' },
+	
+    TECH10 => { gain => { VP => { FED => [ map { $_ * 5 } 0..18 ] } }, income => {}, type => 'advanced' },
+    TECH11 => { gain => { VP => { M => [ map { $_  * 2 } 0..8 ] } }, income => {}, type => 'advanced' },
+    TECH12 => { gain => { VP => { TS => [ map { $_ * 4 } 0..4 ] } }, income => {}, type => 'advanced' },
+    TECH13 => { gain => { VP => { GAIA => [ map { $_ * 2 } 0..19 ] } }, income => {}, type => 'advanced' },
+    TECH14 => { gain => { VP => { SECTOR => [ map { $_ * 2 } 0..10 ] } }, income => {}, type => 'advanced' },
+    TECH15 => { gain => { O => { SECTOR => [ map { $_ * 2 } 0..10 ] } }, income => {}, type => 'advanced' },
+    TECH16 => { vp => { M => 3 }, income => {}, type => 'advanced' },
+    TECH17 => { vp => { TS => 3 }, income => {}, type => 'advanced' },
+    TECH18 => { vp => { RESEARCH => 2 }, income => {}, type => 'advanced' },
+    TECH19 => { pass_vp => { PLANET_TYPES => [ map { $_ } 0..9 ] }, income => {}, type => 'advanced' },
+    TECH20 => { pass_vp => { RL => [ map { $_ * 3 } 0..3 ] }, income => {}, type => 'advanced' },
+    TECH21 => { pass_vp => { FED => [ map { $_ * 3 } 0..18 ] }, income => {}, type => 'advanced' },
+    TECH22 => { income => {}, type => 'advanced' },
+    TECH23 => { income => {}, type => 'advanced' },
+    TECH24 => { income => {}, type => 'advanced' },
+    
+    SCORE1 => { vp => { TERRAFORM => 2 },
+                vp_display => 'TERRAFORM >> 2',
+                vp_mode => 'gain' },
+    SCORE2 => { vp => { map(("FED$_", 5), 1..18) },
+                vp_display => 'FEDERATION >> 5',
+                vp_mode => 'gain' },
+    SCORE3 => { vp => { M => 2 },
+                vp_display => 'M >> 2',
+                vp_mode => 'build' },
+	SCORE4 => { vp => { M => 3 },
+                vp_display => 'M >> 3',
+                vp_mode => 'build' },    
+    SCORE5 => { vp => { PI => 5, AC => 5 },
+                vp_display => 'PI/AC >> 5',
+                vp_mode => 'build' },
+	SCORE6 => { vp => { PI => 5, AC => 5 },
+                vp_display => 'PI/AC >> 5',
+                vp_mode => 'build' },    
+    SCORE7 => { vp => { TS => 3 },
+                vp_display => 'TS >> 3',
+                vp_mode => 'build' },    
+    SCORE8 => { vp => { TS => 4 },
+                vp_display => 'TS >> 4',
+                vp_mode => 'build' },    
+    SCORE9 => { vp => { GAIA => 3 },
+                vp_display => 'GAIA >> 3',
+                vp_mode => 'build' },    
+    SCORE10 => { vp => { GAIA => 4 },
+                vp_display => 'TP >> 4',
+                vp_mode => 'build' },    
+    SCORE11 => { vp => { RESEARCH => 2 },
+                vp_display => 'RESEARCH >> 2',
+                vp_mode => 'gain' },    
 
-    FAV5 => { gain => { FIRE => 2, TOWN_SIZE => -1 }, income => {} },
-    FAV6 => { gain => { WATER => 2 }, income => {} },
-    FAV7 => { gain => { EARTH => 2 }, income => { W => 1, PW => 1} },
-    FAV8 => { gain => { AIR => 2 }, income => { PW => 4} },
-
-    FAV9 => { gain => { FIRE => 1 }, income => { C => 3} },
-    FAV10 => { gain => { WATER => 1 }, income => {}, vp => { TP => 3 } },
-    FAV11 => { gain => { EARTH => 1 }, income => {}, vp => { D => 2 } },
-    FAV12 => { gain => { AIR => 1 }, income => {},
-               pass_vp => { TP => [ 0, 2, 3, 3, 4 ] } },
-
-    SCORE1 => { vp => { SPADE => 2 },
-                vp_display => 'SPADE >> 2',
-                vp_mode => 'gain',
-                cult => 'EARTH',
-                req => 1, 
-                income => { C => 1 } },
-    SCORE2 => { vp => { map(("TW$_", 5), 1..8) },
-                vp_display => 'TOWN >> 5',
-                vp_mode => 'gain',
-                cult => 'EARTH',
-                req => 4, 
-                income => { SPADE => 1 } },
-    SCORE3 => { vp => { D => 2 },
-                vp_display => 'D >> 2',
-                vp_mode => 'build',
-                cult => 'WATER',
-                req => 4, 
-                income => { P => 1 } },    
-    SCORE4 => { vp => { SA => 5, SH => 5 },
-                vp_display => 'SA/SH >> 5',
-                vp_mode => 'build',
-                cult => 'FIRE',
-                req => 2,
-                income => { W => 1 } },    
-    SCORE5 => { vp => { D => 2 },
-                vp_display => 'D >> 2',
-                vp_mode => 'build',
-                cult => 'FIRE',
-                req => 4, 
-                income => { PW => 4 } },    
-    SCORE6 => { vp => { TP => 3 },
-                vp_display => 'TP >> 3',
-                vp_mode => 'build',
-                cult => 'WATER',
-                req => 4, 
-                income => { SPADE => 1 } },    
-    SCORE7 => { vp => { SA => 5, SH => 5 },
-                vp_display => 'SA/SH >> 5',
-                vp_mode => 'build',
-                cult => 'AIR',
-                req => 2,
-                income => { W => 1 } },    
-    SCORE8 => { vp => { TP => 3 },
-                vp_display => 'TP >> 3',
-                vp_mode => 'build',
-                cult => 'AIR',
-                req => 4, 
-                income => { SPADE => 1 } },    
-    SCORE9 => { vp => { TE => 4 },
-                vp_display => 'TE >> 4',
-                vp_mode => 'build',
-                cult => 'CULT_P',
-                req => 1,
-                option => 'temple-scoring-tile',
-                income => { C => 2 } },    
-
-    TW1 => { gain => { KEY => 1, VP => 5, C => 6 } },
-    TW2 => { gain => { KEY => 1, VP => 7, W => 2 } },
-    TW3 => { gain => { KEY => 1, VP => 9, P => 1 } },
-    TW4 => { gain => { KEY => 1, VP => 6, PW => 8 } },
-    TW5 => { gain => { KEY => 1, VP => 8, FIRE => 1, WATER => 1, EARTH => 1, AIR => 1 } },
-    TW6 => { gain => { KEY => 2, VP => 2, FIRE => 2, WATER => 2, EARTH => 2, AIR => 2 }, count => 1, option => 'mini-expansion-1' },
-    TW7 => { gain => { KEY => 1, VP => 4, GAIN_SHIP => 1, carpet_range => 1 },
-             option => 'mini-expansion-1' },
-    TW8 => { gain => { KEY => 1, VP => 11 }, count => 1, option => 'mini-expansion-1' },
+    FED1 => { gain => { KEY => 1, VP => 6, K => 2 } },
+    FED2 => { gain => { KEY => 1, VP => 7, O => 2 } },
+    FED3 => { gain => { KEY => 1, VP => 7, C => 6 } },
+    FED4 => { gain => { KEY => 1, VP => 8, PT => 2 } },
+    FED5 => { gain => { KEY => 1, VP => 8, Q => 1 } },
+    FED6 => { gain => { KEY => 1, VP => 12 } },
 );
 
 ## Initial game board
@@ -219,125 +208,73 @@ Readonly our %colors => map { ($colors[$_], $_) } 0..$#colors;
 
 ## Faction definitions
 
-use Game::Factions::Acolytes;
-use Game::Factions::Alchemists;
-use Game::Factions::Auren;
-use Game::Factions::Chaosmagicians;
-use Game::Factions::Cultists;
-use Game::Factions::Darklings;
-use Game::Factions::Dragonlords;
-use Game::Factions::Dwarves;
-use Game::Factions::Engineers;
-use Game::Factions::Fakirs;
-use Game::Factions::Giants;
-use Game::Factions::Halflings;
-use Game::Factions::Icemaidens;
-use Game::Factions::Mermaids;
-use Game::Factions::Nomads;
-use Game::Factions::Riverwalkers;
-use Game::Factions::Shapeshifters;
-use Game::Factions::Swarmlings;
-use Game::Factions::Witches;
-use Game::Factions::Yetis;
+use Game::Factions::Ambas;
+use Game::Factions::BalTaks;
+use Game::Factions::Bescods;
+use Game::Factions::Firaks;
+use Game::Factions::Geodens;
+use Game::Factions::Gleens;
+use Game::Factions::HadschHallas;
+use Game::Factions::Itars;
+use Game::Factions::Ivits;
+use Game::Factions::Lantids;
+use Game::Factions::Nevlas;
+use Game::Factions::Taklons;
+use Game::Factions::Terrans;
+use Game::Factions::Xenos;
 
 Readonly our %faction_setups => (
-    alchemists => $Game::Factions::Alchemists::alchemists,
-    auren => $Game::Factions::Auren::auren,
-    chaosmagicians => $Game::Factions::Chaosmagicians::chaosmagicians,
-    cultists => $Game::Factions::Cultists::cultists,
-    darklings => $Game::Factions::Darklings::darklings,
-    dwarves => $Game::Factions::Dwarves::dwarves,
-    engineers => $Game::Factions::Engineers::engineers,
-    fakirs => $Game::Factions::Fakirs::fakirs,
-    giants => $Game::Factions::Giants::giants,
-    halflings => $Game::Factions::Halflings::halflings,
-    mermaids => $Game::Factions::Mermaids::mermaids,
-    nomads => $Game::Factions::Nomads::nomads,
-    swarmlings => $Game::Factions::Swarmlings::swarmlings,
-    witches => $Game::Factions::Witches::witches,
-);
-
-Readonly our %faction_setups_extra => (
-    playtest_v1_ice => {
-        icemaidens => $Game::Factions::Icemaidens::icemaidens_playtest_v1,
-        yetis => $Game::Factions::Yetis::yetis_playtest_v1,
-    },
-    final_ice => {
-        icemaidens => $Game::Factions::Icemaidens::icemaidens,
-        yetis => $Game::Factions::Yetis::yetis,
-    },
-    playtest_v1_volcano => {
-        acolytes => $Game::Factions::Acolytes::acolytes_playtest_v1,
-        dragonlords => $Game::Factions::Dragonlords::dragonlords_playtest_v1,
-    },
-    playtest_v2_volcano => {
-        acolytes => $Game::Factions::Acolytes::acolytes_playtest_v2,
-        dragonlords => $Game::Factions::Dragonlords::dragonlords_playtest_v2,
-    },
-    playtest_v3_volcano => {
-        acolytes => $Game::Factions::Acolytes::acolytes_playtest_v3,
-        dragonlords => $Game::Factions::Dragonlords::dragonlords_playtest_v3,
-    },
-    final_volcano => {
-        acolytes => $Game::Factions::Acolytes::acolytes,
-        dragonlords => $Game::Factions::Dragonlords::dragonlords,
-    },
-
-    final_variable => {
-        riverwalkers => $Game::Factions::Riverwalkers::riverwalkers,
-        shapeshifters => $Game::Factions::Shapeshifters::shapeshifters,
-    },
-    final_variable_v2 => {
-        riverwalkers => $Game::Factions::Riverwalkers::riverwalkers,
-        shapeshifters => $Game::Factions::Shapeshifters::shapeshifters_v2,
-    },
-    final_variable_v3 => {
-        riverwalkers => $Game::Factions::Riverwalkers::riverwalkers,
-        shapeshifters => $Game::Factions::Shapeshifters::shapeshifters_v3,
-    },
-    final_variable_v4 => {
-        riverwalkers => $Game::Factions::Riverwalkers::riverwalkers_v4,
-        shapeshifters => $Game::Factions::Shapeshifters::shapeshifters_v4,
-    },
-    final_variable_v5 => {
-        riverwalkers => $Game::Factions::Riverwalkers::riverwalkers_v5,
-        shapeshifters => $Game::Factions::Shapeshifters::shapeshifters_v5,
-    },
+    ambas => $Game::Factions::Ambas::ambas,
+    baltaks => $Game::Factions::BalTaks::baltaks,
+    bescods => $Game::Factions::Bescods::bescods,
+    firaks => $Game::Factions::Firaks::firaks,
+    geodens => $Game::Factions::Geodens::geodens,
+    gleens => $Game::Factions::Gleens::gleens,
+    hadschhallas => $Game::Factions::HadschHallas::hadschhallas,
+    itars => $Game::Factions::Itars::itars,
+    ivits => $Game::Factions::Ivits::ivits,
+    lantids => $Game::Factions::Lantids::lantids,
+    nevlas => $Game::Factions::Nevlas::nevlas,
+    taklons => $Game::Factions::Taklons::taklons,
+    terrans => $Game::Factions::Terrans::terrans,
+    xenos => $Game::Factions::Xenos::xenos,
 );
 
 Readonly our %final_scoring => (
-    network => {
-        description => "Largest connected network of buildings",
+    structures => {
+        description => "Largest number of structures.",
         points => [18, 12, 6],
-        label => "network",
+        label => "structures",
     },
-    'connected-distance' => {
-        description => "Largest distance between two buildings in one network of connected buildings",
-        option => 'fire-and-ice-final-scoring',
+    'federated-structures' => {
+        description => "Largest number of structures in federations.",
         points => [18, 12, 6],
-        label => 'distance',
+        label => 'federated-structures',
     },
-    'connected-sa-sh-distance' => {
-        description => "Largest distance between a stronghold and sanctuary, which are in the same network of connected buildings",
-        option => 'fire-and-ice-final-scoring',
+    'satellites' => {
+        description => "Largest number of satellites",
         points => [18, 12, 6],
-        label => 'sa-sh-distance',
+        label => 'satellites',
     },
-    'building-on-edge' => {
-        description => "Largest number of buildings on the edge of the map and in the same network of connected buildings",
-        option => 'fire-and-ice-final-scoring',
+    'sectors' => {
+        description => "Most sectors with at least one structure ",
         points => [18, 12, 6],
-        label => 'edge',
+        label => 'sectors',
     },
-    'connected-clusters' => {
-        description => "Most separate clusters in one network of connected buildings. (Where a cluster is a group of directly connected buildings).",
-        option => 'fire-and-ice-final-scoring',
+    'gaia-planets' => {
+        description => "Largest number of Gaia planets.",
         points => [18, 12, 6],
-        label => 'clusters',
+        label => 'gaia-planets',
     },
-    'cults' => {
+	'planet-types' => {
+        description => "Largest number of different planet types.",
+        points => [18, 12, 6],
+        label => 'planet-types',
+    },
+    'research-areas' => {
         description => "Position on each cult",
-        points => [ 8, 4, 2 ]
+        points => [ 12, 8, 4 ]
+		label => 'research-areas',
     }
 );
 
