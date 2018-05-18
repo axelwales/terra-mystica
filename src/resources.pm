@@ -6,7 +6,7 @@ use Readonly;
 use Game::Constants;
 
 use scoring;
-use towns;
+use federations;
 
 sub maybe_setup_pool() {
     return if $game{pool};
@@ -17,8 +17,10 @@ sub setup_pool {
     $game{pool} = {
         # Resources
         C => 1000,
-        W => 1000,
-        P => 1000,
+        O => 1000,
+        K => 1000,
+        Q => 1000,
+        PT => 1000,
         VP => 1000,
 
         # Power
@@ -27,38 +29,32 @@ sub setup_pool {
         P3 => 10000,
 
         # Cult tracks
-        EARTH => 100,
-        FIRE => 100,
-        WATER => 100,
-        AIR => 100,
+        TERRAFORMING => 100,
+        NAVIGATION => 100,
+        ARTIFICIAL_INTELLIGENCE => 100,
+        GAIA_PROJECT => 100,
+        ECONOMY => 100,
+        SCIENCE => 100,
         KEY => 100,
 
         # Temporary pseudo-resources for tracking activation effects
-        SPADE => 10000,
-        VOLCANO_TF => 10000,
+        TERRAFORM => 10000,
         FREE_TF => 10000,
-        FREE_TP => 10000,
-        FREE_D => 10000,
+        FREE_TS => 10000,
+        FREE_M => 10000,
         TELEPORT_NO_TF => 10000,
         TF_NEED_HEX_ADJACENCY => 10000,
         CULT => 10000,
         LOSE_CULT => 10000,
-        GAIN_FAVOR => 10000,
+        GAIN_TECH => 10000,
         GAIN_SHIP => 10000,
-        GAIN_TW => 10000,
+        GAIN_FED => 10000,
         GAIN_ACTION => 10000,
         PICK_COLOR => 10000,
-        BRIDGE => 10000,
-        CONVERT_W_TO_P => 3,
-        TOWN_SIZE => 10000,
-        LOSE_PW_TOKEN => 10000,
-        PRIEST_CULT_BONUS => 10000,
+        FED_SIZE => 10000,
+        LOSE_PT => 10000,
         CULTS_ON_SAME_TRACK => 10000,
-        UNLOCK_TERRAIN => 10000,
-        MAX_P => 10000,
-        ALLOW_SHAPESHIFT => 100,
         GAIN_P3_FOR_VP => 10000,
-        carpet_range => 3,
     };
 
     $game{pool}{"ACT$_"}++ for 1..6;
@@ -70,11 +66,10 @@ sub setup_pool {
         }
         if (/^BON/) {
             $game{pool}{$_}++;
-            $game{bonus_coins}{$_}{C} = 0;
-        } elsif (/^FAV/) {
+        } elsif (/^TECH/) {
+            $game{pool}{$_} += $tiles{$_}{count} || 4;
+        } elsif (/^FED/) {
             $game{pool}{$_} += $tiles{$_}{count} || 3;
-        } elsif (/^TW/) {
-            $game{pool}{$_} += $tiles{$_}{count} || 2;
         } elsif (/^SCORE/) {
             $game{score_pool}{$_}++;
         }
@@ -84,13 +79,13 @@ sub setup_pool {
 sub adjust_resource;
 
 Readonly my %resource_aliases => (
-    PRIEST => 'P',
-    PRIESTS => 'P',
+    KNOWLEDGE => 'K',
     POWER => 'PW',
-    WORKER => 'W',
-    WORKERS => 'W',
+    'POWER TOKEN' => 'PT',
+    ORE => 'O',
     COIN => 'C',
     COINS => 'C',
+    QIC => 'Q',
 );
 
 sub alias_resource {
@@ -190,18 +185,12 @@ sub gain_power {
 sub maybe_gain_power_from_cult {
     my ($faction, $cult, $old_value, $new_value) = @_;
 
-    if ($old_value <= 2 && $new_value > 2) {
-        adjust_resource $faction, 'PW', 1;
+    if ($old_value <= 2 && $new_value > 3) {
+        adjust_resource $faction, 'PW', 3;
     }
-    if ($old_value <= 4 && $new_value > 4) {
-        adjust_resource $faction, 'PW', 2;
-    }
-    if ($old_value <= 6 && $new_value > 6) {
-        adjust_resource $faction, 'PW', 2;
-    }
-    if ($old_value <= 9 && $new_value > 9) {
+    if ($old_value <= 4 && $new_value > 5) {
         if ($faction->{KEY} < 1) {
-            $faction->{$cult} = 9;
+            $faction->{$cult} = 4;
             if (!$game{options}{'manual-fav5'}) {
                 $faction->{cult_blocked}{$cult} = 1;
             }
@@ -210,22 +199,21 @@ sub maybe_gain_power_from_cult {
 
         if ($game{acting}->should_wait_for_cultists($cult) and
             $faction->{name} ne 'cultists') {
-            die "Must wait for cultist decision before advancing to level 10 in $cult. (Use the \"wait\" command).\n";
+            die "Must wait for cultist decision before advancing to level 5 in $cult. (Use the \"wait\" command).\n";
         }
         
         adjust_resource $faction, 'KEY', -1;
-        adjust_resource $faction, 'PW', 3;
         # Block others from this space
         for my $other_faction ($game{acting}->factions_in_order()) {
             if ($other_faction != $faction) {
-                $other_faction->{"MAX_$cult"} = 9;
+                $other_faction->{"MAX_$cult"} = 4;
             }
         }
     }
-    if ($old_value == 10 && $new_value < 10) {
+    if ($old_value == 5 && $new_value < 5) {
         adjust_resource $faction, 'KEY', 1;
         for my $other_faction ($game{acting}->factions_in_order()) {
-            $other_faction->{"MAX_$cult"} = 10;
+            $other_faction->{"MAX_$cult"} = 5;
         }
     }
 }
@@ -269,8 +257,8 @@ sub adjust_resource {
         $game{events}->faction_event($faction, "vp", $delta);
     }
 
-    if ($type eq 'PW_TOKEN' and $delta < 0) {
-        $type = 'LOSE_PW_TOKEN';
+    if ($type eq 'PT' and $delta < 0) {
+        $type = 'LOSE_PT';
         $delta = -$delta;
     }
 
@@ -288,7 +276,7 @@ sub adjust_resource {
     } elsif ($type eq 'GAIN_ACTION') {
         $faction->{allowed_actions} += $delta;
         return;
-    } elsif ($type eq 'LOSE_PW_TOKEN') {
+    } elsif ($type eq 'LOSE_PT') {
         for (1..abs $delta) {
             if ($faction->{P1}) {
                 $faction->{P1}--;
@@ -339,13 +327,13 @@ sub adjust_resource {
             }
         }
 
-        if ($type =~ /^FAV/) {
+        if ($type =~ /^TECH/) {
             if ($faction->{$type} > 1) {
                 die "Can't take two copies of $type\n";
             }
             
             $faction->{stats}{$type}{round} = "$game{round}";
-            $faction->{stats}{$type}{order} = scalar grep {/^FAV/} keys %{$faction};
+            $faction->{stats}{$type}{order} = scalar grep {/^TECH/} keys %{$faction};
 
             gain $faction, $tiles{$type}{gain}, $type;
 
@@ -361,14 +349,14 @@ sub adjust_resource {
             $game{events}->faction_event($faction, "favor:any", 1);
         }
 
-        if ($type =~ /^TW/) {
+        if ($type =~ /^FED/) {
             for (1..$delta) {
                 warn_if_cant_gain $faction, $tiles{$type}{gain}, $type;
-                gain $faction, $tiles{$type}{gain}, 'TW',
+                gain $faction, $tiles{$type}{gain}, 'FED',
             }
 
-            $game{events}->faction_event($faction, "town:$type", 1);
-            $game{events}->faction_event($faction, "town:any", 1);
+            $game{events}->faction_event($faction, "federation:$type", 1);
+            $game{events}->faction_event($faction, "federation:any", 1);
         }
 
         if ($type eq 'KEY') {

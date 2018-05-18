@@ -12,7 +12,7 @@ use vars qw(%game);
 sub faction_income {
     my $faction = shift;
 
-    my %total_income = map { $_, 0 } qw(C W P PW);
+    my %total_income = map { $_, 0 } qw(C O K PW Q PT);
 
     my %total_building_income = %total_income;
     my %total_favor_income = %total_income;
@@ -40,12 +40,12 @@ sub faction_income {
             next;
         }
 
-        if ($tile =~ /^(BON|FAV)/) {
+        if ($tile =~ /^(BON|TECH)/) {
             my $tile_income = $tiles{$tile}{income};
             for my $type (keys %{$tile_income}) {
                 if ($tile =~ /^BON/ and $faction->{passed}) {
                     $total_bonus_income{$type} += $tile_income->{$type};
-                } elsif ($tile =~ /^FAV/) {
+                } elsif ($tile =~ /^TECH/) {
                     $total_favor_income{$type} += $tile_income->{$type};
                 }
             }
@@ -75,7 +75,7 @@ sub faction_income {
         my $total = 0;
         for my $type (keys %{$subincome}) {
             $total_income{$type} += $subincome->{$type};
-            if (grep { $type eq $_} qw(C W P PW)) {
+            if (grep { $type eq $_} qw(C O K PW Q PT)) {
                 $total += $subincome->{$type};
             }
         }
@@ -121,10 +121,10 @@ sub take_income_for_faction {
 
     $faction->{income_taken} |= $type;
 
-    if ($faction->{SPADE}) {
+    if ($faction->{TERRAFORM}) {
         $game{acting}->require_action($faction,
                                       { type => 'transform',
-                                        amount => $faction->{SPADE} });
+                                        amount => $faction->{TERRAFORM} });
     }
 
     if ($faction->{CULT}) {
