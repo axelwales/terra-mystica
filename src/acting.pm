@@ -175,13 +175,13 @@ method register_faction($faction) {
     my @setup_order = map {
         [ $_, 'dwelling' ];
     } grep {
-        $_ ne 'chaosmagicians';
+        $_ ne 'ivits';
     } @order;
     push @setup_order, reverse @setup_order;
-    push @setup_order, ['nomads', 'dwelling'] if $self->factions()->{nomads};
+    push @setup_order, ['xenos', 'dwelling'] if $self->factions()->{xenos};
 
-    if ($self->factions()->{chaosmagicians}) {
-        push @setup_order, ['chaosmagicians', 'dwelling'];
+    if ($self->factions()->{ivits}) {
+        push @setup_order, ['ivits', 'planetary institute'];
     }
     push @setup_order, map { [ $_, 'bonus'] } reverse @order;
 
