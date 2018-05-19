@@ -62,9 +62,6 @@ sub detect_towns_from {
         my $type = $map{$loc}{building};
         my $str = $faction->{building_strength}{$type} // $building_strength{$type};
         $power += $str;
-        $count++;
-        # Sanctuary counts as two buildings.
-        $count++ if $map{$loc}{building} eq 'SA';
 
         for my $adjacent (adjacent_own_buildings $faction, $loc) {
             $handle->($adjacent);
@@ -74,12 +71,12 @@ sub detect_towns_from {
     $handle = undef;
 
     my @reachable = keys %reachable;
-    my $town_tile_count = grep { /^TW/ and $game{pool}{$_} > 0 } keys %{$game{pool}};
-    if ($power >= $faction->{TOWN_SIZE} and $count >= 4 and
+    my $town_tile_count = grep { /^FED/ and $game{pool}{$_} > 0 } keys %{$game{pool}};
+    if ($power >= $faction->{FED_SIZE} and
         $town_tile_count) {
         # Use the same town id for all towns for now.
         $map{$_}{town} = $town_tile_count for @reachable;
-        adjust_resource($faction, "GAIN_TW", 1);
+        adjust_resource($faction, "GAIN_FED", 1);
         return 1;
     }
 
@@ -124,8 +121,8 @@ sub check_mermaid_river_connection_town {
     $handle->($river);
     $handle = undef;
 
-    if ($power >= $faction->{TOWN_SIZE} and $count >= 4 and
-        grep { /^TW/ and $game{pool}{$_} > 0 } keys %{$game{pool}}) {
+    if ($power >= $faction->{TOWN_SIZE} and
+        grep { /^FED/ and $game{pool}{$_} > 0 } keys %{$game{pool}}) {
         return 1;
     }
 

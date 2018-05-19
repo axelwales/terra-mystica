@@ -1,18 +1,21 @@
-package Game::Factions::BalTaks;
+package Game::Factions::Lantids;
 
 use strict;
 use Readonly;
 
-Readonly our $baltaks => {
-    C => 15, O => 4, K => 1, Q => 1, P1 => 2, P2 => 2,
-    GAIA_PROJECT => 1,
-    color => 'orange',
-    display => "Bal T'aks",
-    faction_board_id => 13,
-	gaia_project => {
+Readonly our $lantids => {
+    C => 15, O => 4, K => 3, Q => 1, P1 => 2, P2 => 4,
+    color => 'blue',
+    display => "Lantids",
+    faction_board_id => 9,
+    gaia_project => {
 		gaiaform => 1,
-		Q => 1
 	},
+	special => {
+        SHARE_PLANET => { K => 2 },
+        enable_if => { PI => 1 },
+        mode => 'build',
+    },
     buildings => {
         M => { advance_cost => { O => 1, C => 2 },
                income => { O => [ 1, 2, 3, 3, 4, 5, 6, 7, 8 ] } },
@@ -21,13 +24,12 @@ Readonly our $baltaks => {
         RL => { advance_cost => { O => 3, C => 5 },
                 income => { K => [ 1, 2, 3, 4 ] } },
         PI => { advance_cost => { O => 4, C => 6 },
-                advance_gain => [ { ALLOW_NAV => 1 } ],
-                income => { PW => [ 0, 2 ] } },
+                advance_gain => [ ],
+                income => { PT => [ 0, 1 ], PW => [0, 4] } },
         AC_K => { advance_cost => { O => 6, C => 6 },
                 income => { K => [ 0, 2 ] } },
         AC_Q => { advance_cost => { O => 6, C => 6 },
-				advance_gain => [ { ACTBa => 1 } ]
+				advance_gain => [ { ACTQ => 1 } ]
                 income => { } },
     }
 };
-

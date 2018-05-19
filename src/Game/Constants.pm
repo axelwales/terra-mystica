@@ -27,15 +27,17 @@ Readonly our %building_strength => (
     TS => 2,
     RL => 2,
     PI => 3,
-    AC => 3,
+    AC_K => 3,
+    AC_Q => 3,
 );
 
 Readonly our %building_aliases => (
     MINE => 'M',
-    'TRADING STATION' => 'TP',
-    'RESEARCH LAB' => 'TE',
-    'PLANETARY INSTITUTE' => 'SH',
-    Academy => 'SA',
+    'TRADING STATION' => 'TS',
+    'RESEARCH LAB' => 'RL',
+    'PLANETARY INSTITUTE' => 'PI',
+    Academy => 'AC_K',
+    Academy => 'AC_Q',
 );
 
 ## Resources
@@ -159,10 +161,10 @@ Readonly our %tiles => init_tiles (
 	SCORE4 => { vp => { M => 3 },
                 vp_display => 'M >> 3',
                 vp_mode => 'build' },    
-    SCORE5 => { vp => { PI => 5, AC => 5 },
+    SCORE5 => { vp => { PI => 5, AC_K => 5, AC_Q => 5 },
                 vp_display => 'PI/AC >> 5',
                 vp_mode => 'build' },
-	SCORE6 => { vp => { PI => 5, AC => 5 },
+	SCORE6 => { vp => { PI => 5, AC_K => 5, AC_Q => 5 },
                 vp_display => 'PI/AC >> 5',
                 vp_mode => 'build' },    
     SCORE7 => { vp => { TS => 3 },

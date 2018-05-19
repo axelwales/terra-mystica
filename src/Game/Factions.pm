@@ -46,9 +46,7 @@ func initialize_faction($game, $faction_name) {
     $faction->{VP} = $faction->{vp_source}{initial} = 10;
     $faction->{KEY} = 0;
 
-    $faction->{MAX_P} //= 7;
-
-    for (@cults) {
+    for (@research_areas) {
         $faction->{$_} ||= 0;
         $faction->{"MAX_$_"} = 5;
     }
@@ -56,31 +54,33 @@ func initialize_faction($game, $faction_name) {
     $faction->{'CULT_P'} ||= 0;
 
     my $buildings = $faction->{buildings};
-    $buildings->{D}{max_level} = 8;
-    $buildings->{TP}{max_level} = 4;
-    $buildings->{SH}{max_level} = 1;
-    $buildings->{TE}{max_level} = 3;
-    $buildings->{SA}{max_level} = 1;
+    $buildings->{M}{max_level} = 8;
+    $buildings->{TS}{max_level} = 4;
+    $buildings->{PI}{max_level} = 1;
+    $buildings->{RL}{max_level} = 3;
+    $buildings->{AC_K}{max_level} = 1;
+    $buildings->{AC_Q}{max_level} = 1;
 
     for (0..2) {
-        $buildings->{TE}{advance_gain}[$_]{GAIN_FAVOR} ||= 1;
+        $buildings->{RL}{advance_gain}[$_]{GAIN_TECH} ||= 1;
     }
-    $buildings->{SA}{advance_gain}[0]{GAIN_FAVOR} ||= 1;
+    $buildings->{AC_K}{advance_gain}[0]{GAIN_TECH} ||= 1;
+    $buildings->{AC_q}{advance_gain}[0]{GAIN_TECH} ||= 1;
 
     for my $building (values %{$buildings}) {
         $building->{level} = 0;
     }
 
-    $faction->{SPADE} = 0;
-    $faction->{TOWN_SIZE} = 7;
-    $faction->{BRIDGE_COUNT} = 3;
+    $faction->{TERRAFORM} = 0;
+    $faction->{FED_SIZE} = 7;
     $faction->{planning} = 0;
 
     my %base_exchange_rates = (
-        PW => { C => 1, W => 3, P => 5 },
-        W => { C => 1 },
-        P => { C => 1, W => 1 },
-        C => { VP => 3 }
+        PW => { C => 1, O => 3, K => 4, Q => 4 },
+        O => { C => 1, PT => 1 },
+        K => { C => 1 },
+        C => { VP => 3 },
+		Q => { C => 1, O =>1, PT => 1, RANGE => 2 }
     );
     if ($faction->{exchange_rates}) {
         for my $from_key (keys %{$faction->{exchange_rates}}) {
