@@ -14,7 +14,7 @@ use income;
 use ledger;
 use resources;
 use scoring;
-use towns;
+use federations;
 
 use vars qw(%game);
 
@@ -27,9 +27,9 @@ sub command_adjust_resources {
     my $ledger = $game{ledger};
     my $checked = 0;
 
-    if (grep { $_ eq $type } @cults) {
-        if ($faction->{CULT} < $delta) {
-            if ($faction->{$type} == 10) {
+    if (grep { $_ eq $type } @research_areas) {
+        if ($faction->{RESEARCH} < $delta) {
+            if ($faction->{$type} == 5) {
                 $checked = 1;
             } elsif ($faction->{cult_blocked} and
                        $faction->{cult_blocked}{$type} and
@@ -39,15 +39,15 @@ sub command_adjust_resources {
                 # die "Advancing $delta steps on $type cult not allowed\n";
             }
         } elsif ($delta < 0) {
-            if ($faction->{LOSE_CULT}) {
+            if ($faction->{LOSE_RESEARCH}) {
                 my $loss = -$delta;
-                if ($faction->{LOSE_CULT} != $loss) {
+                if ($faction->{LOSE_RESEARCH} != $loss) {
                     die "All cult steps must be lost on the same cult track\n";
                 }
                 if ($faction->{$type} < $loss) {
                     die "Not high enough on $type to lose $loss steps";
                 }
-                $faction->{LOSE_CULT} -= $loss;
+                $faction->{LOSE_RESEARCH} -= $loss;
                 $checked = 1;
             } elsif (!$game{options}{'loose-cult-loss'}) {
                 my $old_value = $faction->{$type};
@@ -59,34 +59,34 @@ sub command_adjust_resources {
                     die "Can't voluntarily lose cult steps\n";
                 }
             }
-        } elsif ($faction->{CULT} > $delta and
+        } elsif ($faction->{LOSE_RESEARCH} > $delta and
                  $faction->{CULTS_ON_SAME_TRACK}) {
             die "All cult advances must be used on the same cult track\n";
         } else {
-            $faction->{CULT} -= $delta;
+            $faction->{RESEARCH} -= $delta;
             $checked = 1;
             delete $faction->{CULTS_ON_SAME_TRACK};
         }
-    } elsif ($faction->{LOSE_CULT}) {
+    } elsif ($faction->{LOSE_RESEARCH}) {
         unless ($game{options}{'loose-lose-cult'}) {
             die "Must lose $faction->{LOSE_CULT} cult steps first\n";
         }
     }
 
-    if ($type =~ /^FAV/) {
-        if (!$faction->{GAIN_FAVOR}) {
+    if ($type =~ /^TECH/) {
+        if (!$faction->{GAIN_TECH}) {
             die "Taking favor tile not allowed\n";
         } else {
-            $faction->{GAIN_FAVOR} -= $delta;
+            $faction->{GAIN_TECH} -= $delta;
             $checked = 1;
         }
     }
 
-    if ($type =~ /^TW/) {
-        if (!$faction->{GAIN_TW}) {
-            die "Taking town tile not allowed\n";
+    if ($type =~ /^FED/) {
+        if (!$faction->{GAIN_FED}) {
+            die "Taking federation tile not allowed\n";
         } else {
-            $faction->{GAIN_TW} -= $delta;
+            $faction->{GAIN_FED} -= $delta;
             $checked = 1;
         }
     }
@@ -150,7 +150,7 @@ sub command_build {
     my $faction_name = $faction->{name};
 
     my $free = ($game{round} == 0);
-    my $type = 'D';
+    my $type = 'M';
     my $color = $faction->{color};
 
     die "Unknown location '$where'\n" if !$map{$where};
@@ -227,7 +227,7 @@ sub command_build {
         }
     }
 
-    if ($faction->{SPADE} > 0) {
+    if ($faction->{TERRAFORM} > 0) {
         die "Must do all transforms before building ($faction->{SPADE} spades) remaining\n";
     }
 
@@ -251,7 +251,7 @@ sub command_build {
 
     detect_towns_from $faction, $where;
 
-    $game{events}->faction_event($faction, 'build:D', 1);
+    $game{events}->faction_event($faction, 'build:M', 1);
     $game{events}->location_event($faction, $where);
 }
 
@@ -266,7 +266,7 @@ sub command_upgrade {
     die "$where has wrong color ($color vs $map{$where}{color})\n" if
         $map{$where}{color} ne $color;
 
-    my %wanted_oldtype = (TP => 'D', TE => 'TP', SH => 'TP', SA => 'TE');
+    my %wanted_oldtype = (M => 'GF', TS => 'M', RL => 'TS', PI => 'TS', AC_K => 'RL', AC_Q => 'RL');
     my $oldtype = $map{$where}{building};
 
     if (!$wanted_oldtype{$type}) {
@@ -310,12 +310,12 @@ sub command_upgrade {
     $game{events}->faction_event($faction, "upgrade:$type", 1);
 }
 
-sub command_send {
+sub command_research {
     my ($faction, $cult, $amount) = @_;
 
-    $game{acting}->require_subaction($faction, 'send', {});
+    $game{acting}->require_subaction($faction, 'research', {});
 
-    die "Unknown cult track $cult\n" if !grep { $_ eq $cult } @cults;
+    die "Unknown research track $cult\n" if !grep { $_ eq $cult } @research_areas;
 
     my $gain = { $cult => 1 };
     for (1..4) {
@@ -344,7 +344,7 @@ sub command_send {
 
     gain $faction, $gain;
 
-    adjust_resource $faction, "P", -1;
+    adjust_resource $faction, "K", -4;
 }
 
 sub command_convert {
@@ -1472,7 +1472,7 @@ sub command {
                     $bridge->{color} = $wanted_color;
                 }
             }
-            for my $cult (@cults) {
+            for my $cult (@research_areas) {
                 for my $where (1..4) {
                     my $spot = "$cult$where";
                     if ($game{cults}{$spot}{color} and

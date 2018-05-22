@@ -600,11 +600,11 @@ method detect_incomplete_turn($faction) {
         });
     }
 
-    if ($faction->{SPADE}) {
+    if ($faction->{TERRAFORM}) {
         $incomplete = 1;
         $self->require_action($faction, {
             type => 'transform',
-            amount => $faction->{SPADE}, 
+            amount => $faction->{TERRAFORM}, 
         });
     }
 
@@ -621,18 +621,10 @@ method detect_incomplete_turn($faction) {
         });
     }
 
-    if ($faction->{VOLCANO_TF}) {
-        $incomplete = 1;
-        $ledger->warn("Unused terraform for $faction_name");
+    if ($faction->{LOSE_RESEARCH}) {
         $self->require_action($faction, {
-            type => 'transform',
-        });
-    }
-
-    if ($faction->{LOSE_CULT}) {
-        $self->require_action($faction, {
-            type => 'lose-cult',
-            amount => $faction->{LOSE_CULT}
+            type => 'lose-research',
+            amount => $faction->{LOSE_RESEARCH}
         });
         return 1;
     }
@@ -642,7 +634,7 @@ method detect_incomplete_turn($faction) {
         $ledger->warn("Unused free trading post for $faction_name\n");
         $self->require_action($faction, {
             type => 'upgrade',
-            from_building => 'D',
+            from_building => 'RL',
             to_building => 'TP',
         });
     }
@@ -656,74 +648,35 @@ method detect_incomplete_turn($faction) {
         });
     }
 
-    if ($faction->{CULT}) {
+    if ($faction->{RESEARCH}) {
         $incomplete = 1;
         $self->require_action($faction, {
-            type => 'cult',
-            amount => $faction->{CULT}, 
+            type => 'research',
+            amount => $faction->{RESEARCH}, 
         });
         return 1;
     }
 
-    if ($faction->{GAIN_FAVOR}) {
+    if ($faction->{GAIN_TECH}) {
         $incomplete = 1;
         $ledger->warn("favor not taken by $faction_name\n");
         $self->require_action($faction, {
-            type => 'favor',
-            amount => $faction->{GAIN_FAVOR}, 
+            type => 'tech',
+            amount => $faction->{GAIN_TECH}, 
         });
     } else {
         $self->dismiss_action($faction, 'favor');
     }
 
-    if ($faction->{GAIN_TW}) {
+    if ($faction->{GAIN_FED}) {
         $incomplete = 1;
         $ledger->warn("town tile not taken by $faction_name\n");
         $self->require_action($faction, {
-            type => 'town',
-            amount => $faction->{GAIN_TW}, 
+            type => 'federation',
+            amount => $faction->{GAIN_FED}, 
         });
     } else {
-        $self->dismiss_action($faction, 'town');
-    }
-
-    if ($faction->{BRIDGE}) {
-        $incomplete = 1;
-        $ledger->warn("bridge paid for but not placed\n");
-        $self->require_action($faction, {
-            type => 'bridge',
-        });
-    } else {
-        $self->dismiss_action($faction, 'bridge');
-    }
-    
-    if ($faction->{CONVERT_W_TO_P} and
-        $self->game()->{options}{'strict-darkling-sh'}) {
-        $incomplete = 1;
-        $self->require_action($faction, {
-            type => 'convert',
-            from => 'W',
-            amount => $faction->{CONVERT_W_TO_P}, 
-            to => 'P',
-            optional => 1,
-        });
-    }
-
-    if ($faction->{GAIN_P3_FOR_VP}) {
-        $self->require_action($faction, {
-            type => 'gain-token',
-            amount => $faction->{GAIN_P3_FOR_VP},
-            from => 'VP',
-            to => 'P3',
-        });
-    }
-
-    if ($faction->{UNLOCK_TERRAIN}) {
-        $incomplete = 1;
-        $self->require_action($faction, {
-            type => 'unlock-terrain',
-            count => $faction->{UNLOCK_TERRAIN},
-        });
+        $self->dismiss_action($faction, 'federation');
     }
 
     $incomplete;

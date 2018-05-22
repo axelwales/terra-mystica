@@ -23,6 +23,7 @@ Readonly our @research_areas => qw( TERRAFORMING NAVIGATION ARTIFICIAL_INTELLIGE
 ## Buildings
 
 Readonly our %building_strength => (
+    GF => 0,
     M => 1,
     TS => 2,
     RL => 2,
@@ -32,12 +33,13 @@ Readonly our %building_strength => (
 );
 
 Readonly our %building_aliases => (
+    GAIAFORMER => 'GF',
     MINE => 'M',
     'TRADING STATION' => 'TS',
     'RESEARCH LAB' => 'RL',
     'PLANETARY INSTITUTE' => 'PI',
-    Academy => 'AC_K',
-    Academy => 'AC_Q',
+    ACADEMY => 'AC_K',
+    ACADEMY => 'AC_Q',
 );
 
 ## Resources
